@@ -1,0 +1,49 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r }
+rm(list = ls())
+
+library(tidyverse)
+
+#download officials file
+d = read_csv("twitterGovermentOffcials_9.6.18.csv")
+d= d[,c(1:8)]
+
+#divide into democrats and republicans
+dem = subset(d,poli =="D")
+rep = subset(d,poli =="R")
+
+#get the friends data (basically a column)
+u= read.table("FriendPairsFerguson.dat",header=TRUE)
+
+
+```
+
+
+
+```{r match users and representatives}
+
+matchRep = function (data) {
+  length(intersect(data$friendid,rep$userNumber))
+}
+
+matchDem = function (data) {
+  length(intersect(data$friendid,dem$userNumber))
+}
+
+#nest file per user id
+us = u %>%
+  group_by(id)%>%
+  nest() %>%
+  arrange(id)%>%
+  mutate(repFriendCount = map(.x =data, .f = matchRep),
+         demFriendCount = map(.x =data, .f = matchDem))%>%
+  select(id,repFriendCount,demFriendCount)
+
+
+
+```
+
